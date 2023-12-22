@@ -1,9 +1,6 @@
 
 
-
-
-// Registos 
- /*
+//registar a conta de cadastro
 registo Conta 
 	literal numeroConta, codigoCliente
 	inteiro tipoConta
@@ -11,45 +8,18 @@ registo Conta
 fimregisto 
 
 registo Pessoa
-	literal codigo, nome, bi, nif
-	inteiro telefone
-	Conta contaCliente
-fimregisto
-
-	
-	
-	//	Modelo cadastrar Cliente 
-	
-	
-	
-	 funcao logico cadastrarCliente(Pessoa p)	 
-			clientes[quantidade] <- p		
-			quantidade <- quantidade + 1		
-			retorne verdadeiro
-	fimFuncao 
-	*/
-
-
-	
-registo Conta 
-	literal numeroConta, codigoCliente
-	inteiro tipoConta
-	logico estado
-fimregisto 
-
-registo Pessoa
-	literal codigo, nome, bi, nif
+	literal codigo, nome, biOuNif
 	inteiro telefone
 	Conta contaCliente
 fimregisto
 
 
-	inteiro tamanhoClienteNoFicheiro <- 0, espacoClienteNoArray <- 3
+	inteiro tamanhoClienteNoFicheiro <- 0, espacoClienteNoArray <- 10
 	
 // ------------------   Modulos para o ficheiro ---------------------- //
 	funcao fficheiro criarFicheiro()	
 		fficheiro ficheiro
-		literal caminho <- "E:\\Ambiente de trabalho\\classDocs\\2 ano\\Programação 1\\projecto de programaçao\\projectoexe\\BD.txt"
+		literal caminho <- "E:\\Ambiente de trabalho\\classDocs\\2 ano\\Programação 1\\projecto de programaçao\\projectoBancarioDeProgramacaoSPAPRO\\BD.txt"
 		logico ficheiroExiste <- fExiste(caminho)
 			se nao ficheiroExiste entao
 				fcriar(caminho)
@@ -86,8 +56,9 @@ fimregisto
 	      
 	      para i de 0 ate atamanho(data, 0)
 			clienteNoFicheiro[i].nome <- data[0]
-			clienteNoFicheiro[i].bi <- data[1]
-			clienteNoFicheiro[i].nif <-  data[2]
+			clienteNoFicheiro[i].biOuNif <- data[1]
+			clienteNoFicheiro[i].telefone <- strValorInt(data[2])
+//			clienteNoFicheiro[i].nif <-  data[2]
 	      fimpara
 
 		fimenquanto
@@ -98,7 +69,7 @@ fimregisto
 
 	procedimento salvarNoFicheiro(Pessoa p)
 		fficheiro file <- criarFicheiro()	
-			fescrever (file, p.nome+","+ p.bi+","+ p.nif +"\n")
+			fescrever (file, p.nome+","+ p.biOuNif+","+ strIntParaStr(p.telefone)+"\n")
 		ffechar(file)
 	fimprocedimento
 	
@@ -125,7 +96,7 @@ fimregisto
  		fimse
  		
 		se tamanhoClienteNoFicheiro = (atamanho(clientes,0)-1) entao
-			mostre "Sem espaco\n"
+			mostre "Sem espaço -> Reinicie o programa!\n"
 			clienteCadastrado <- falso
 		senao
 			clientes[posicaoNoArray] <- p
@@ -139,36 +110,32 @@ fimregisto
 
 	
 	// Modelo Abertura de Conta
-	funcao logico abrirConta(Pessoa p, inteiro tipoConta)
-	//1 com base no codigo encontrar o cliente
-	//2 procurar no meu vector um cliente onde o seu codigo seja igual ao ID informado
+	funcao logico abrirConta(literal biOuNif, inteiro tipoConta)
+	//1 com base no biOuNif encontrar o cliente
+	//2 procurar no meu vector um cliente onde o seu biOuNif seja igual ao biOuNif informado
 		
 		conta contaCliente
-		
-		contaCliente.codigoCliente <- p.codigo
-		contaCliente.estado <- verdadeiro
-		contaCliente.tipoConta <- tipoConta 
-
-	 	//	Para cliente particular
-		se contaCliente.tipoConta  = 0 entao 
-			contaCliente.numeroConta <- "2000" + p.codigo
-		senao
-		
-		//Para cliente Empresa
-			se contaCliente.tipoConta  = 1 entao 
-				contaCliente.numeroConta <- "1000" + p.codigo
-			fimse
-		fimse
-		
 		inteiro i <- 0 
-		
+	
 		repita 
-			se clientes[i].codigo = p.codigo entao  
+			se clientes[i].biOuNif = biOuNif entao  
+					contaCliente.estado <- verdadeiro
+					contaCliente.tipoConta <- tipoConta 
+					
+				 	//	Para cliente particular
+					se contaCliente.tipoConta  = 0 entao 
+						contaCliente.numeroConta <- "2000" + clientes[i].codigo
+					senao
+					//Para cliente Empresa
+						se contaCliente.tipoConta  = 1 entao 
+							contaCliente.numeroConta <- "1000" + clientes[i].codigo
+						fimse
+					fimse			
+				contaCliente.codigoCliente <- clientes[i].codigo
   				clientes[i].contaCliente <- contaCliente
 			fimse
 			i <- i + 1
 		ate i = tamanhoClienteNoFicheiro
-		
 		retorne verdadeiro 
 	fimFuncao
 
@@ -176,7 +143,8 @@ fimregisto
 
 inicio
 
-	inteiro tecla, tipo
+	inteiro tecla, tipoConta
+	literal biOuNif
 	Pessoa cliente
 
 	enquanto tecla <> 9 faca
@@ -201,10 +169,9 @@ inicio
 			mostre "Digite o nome: "
 			receba cliente.nome
 			mostre "Digite o Bi/Nif: "
-			receba cliente.bi
+			receba cliente.biOuNif
 			mostre "Digite o telefone: "
 			receba cliente.telefone
-			cliente.nif <- cliente.bi
 			cliente.codigo <- strIntParaStr(tamanhoClienteNoFicheiro)
 		
 			limpatela
@@ -213,13 +180,20 @@ inicio
 		caso 2:   					//Modulo Listar clientes
 			mostre "Operacao 2\n\n"
 		caso 3:						//Modulo Abertura de conta
-			mostre "Informe o Tipo de Conta"
-			leia tipo
-			mostre "O estado: ", cliente.contaCliente.estado,"\n"
-			mostre "O numero de Conta: ", cliente.contaCliente.numeroConta,"\n"	
-			mostre "O tipo de Conta: ", cliente.contaCliente.tipoConta, "\n\n"
-			mostre "conta aberta: ", abrirConta(cliente, tipo)
-		
+			mostre "Informe o bi/Nif: "
+			leia biOuNif
+			mostre "Informe o Tipo de Conta\n"
+			mostre "0 - Particular\n"
+			mostre "1 - Empresa\n"
+			mostre "Tipo: "
+			
+			leia tipoConta
+			 se tipoConta = 0 ou tipoConta = 1 entao
+					 abrirConta(biOuNif, tipoConta)
+			senao 
+					mostre "Falha no processo, repita a operação!"
+ 			fimSe
+			limpaTela
 		caso 4:						//Modulo Depositar dinheiro
 			mostre "Operacao 4\n\n"
 		caso 5:						//Modulo Levantar dinheiro
